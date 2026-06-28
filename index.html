@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RushFlix</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #141414;
+      color: #e5e5e5;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; gap: 32px;
+      padding: 0 48px;
+      height: 68px;
+      background: linear-gradient(180deg, rgba(20,20,20,0.98) 0%, rgba(20,20,20,0) 100%);
+      transition: background .3s;
+    }
+    .header.scrolled { background: #141414; }
+    .logo {
+      font-size: 28px; font-weight: 800;
+      color: #0982e5;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+    .logo span { color: #fff; }
+    .nav { display: flex; gap: 20px; list-style: none; font-size: 14px; }
+    .nav a {
+      color: #b3b3b3; text-decoration: none; transition: color .2s;
+      font-weight: 500;
+    }
+    .nav a:hover { color: #fff; }
+    .header-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .header-right i { font-size: 20px; cursor: pointer; }
+    .bell-wrap { position: relative; display: inline-flex; }
+    .bell-badge {
+      position: absolute; top: -6px; right: -8px;
+      min-width: 18px; height: 18px;
+      padding: 0 4px;
+      display: flex; align-items: center; justify-content: center;
+      background: #e50914; color: #fff;
+      font-size: 11px; font-weight: 700;
+      border-radius: 99px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100%; height: 100vh;
+      display: flex; align-items: flex-end;
+      padding: 0 48px 96px;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 140% 60% at 30% 30%, #0c2d5a 0%, transparent 70%),
+        radial-gradient(ellipse 80% 50% at 70% 80%, #1a1a2e 0%, transparent 60%),
+        linear-gradient(135deg, #0a0a1a 0%, #141414 50%, #0d1b2a 100%);
+      z-index: -1;
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.3) 0%, transparent 100%),
+        radial-gradient(2px 2px at 70% 20%, rgba(255,255,255,.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,.2) 0%, transparent 100%),
+        radial-gradient(2px 2px at 10% 80%, rgba(255,255,255,.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 15%, rgba(255,255,255,.2) 0%, transparent 100%);
+      animation: twinkle 4s ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      0%   { opacity: .6; }
+      100% { opacity: 1; }
+    }
+
+    .hero-poster {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      right: 10%;
+      width: 280px; height: 400px;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      background:
+        radial-gradient(circle at 30% 30%, #1e3a5f 0%, transparent 60%),
+        radial-gradient(circle at 70% 80%, #2a1a3a 0%, transparent 50%),
+        linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0a1628 100%);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-poster-text {
+      position: relative; z-index: 1;
+      line-height: 1.3;
+    }
+    .hero-poster-text .emoji-big { font-size: 60px; display: block; margin-bottom: 8px; }
+    .hero-poster-text .year-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.1); backdrop-filter: blur(4px);
+      padding: 2px 12px; border-radius: 4px;
+      font-size: 13px; color: #ccc;
+    }
+    .hero-poster-glow {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(9,130,229,.15) 0%, transparent 60%);
+      animation: pulseGlow 3s ease-in-out infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0%   { opacity: .5; }
+      100% { opacity: 1; }
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 640px; }
+    .hero-badge {
+      display: inline-block;
+      background: #0982e5; color: #fff;
+      padding: 4px 14px; border-radius: 4px;
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: 60px; font-weight: 900;
+      line-height: 1.05; margin-bottom: 12px;
+    }
+    .hero-meta {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 15px; color: #a0a0a0; margin-bottom: 16px;
+    }
+    .hero-meta .match {
+      color: #46d369; font-weight: 700;
+    }
+    .hero-meta .badge {
+      border: 1px solid rgba(255,255,255,.4);
+      padding: 0 6px; border-radius: 3px;
+      font-size: 12px; text-transform: uppercase;
+    }
+    .hero p { font-size: 17px; line-height: 1.6; color: #b0b0b0; margin-bottom: 24px; max-width: 520px; }
+    .hero-buttons { display: flex; gap: 12px; }
+    .btn-primary, .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 28px; border-radius: 6px;
+      font-size: 16px; font-weight: 700; border: none; cursor: pointer;
+      transition: transform .15s, opacity .2s;
+    }
+    .btn-primary { background: #0982e5; color: #fff; }
+    .btn-primary:hover { transform: scale(1.04); opacity: .9; }
+    .btn-secondary {
+      background: rgba(255,255,255,.1); color: #fff;
+      backdrop-filter: blur(4px);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.2); transform: scale(1.04); }
+
+    .hero-fade {
+      position: absolute; bottom: -2px; left: 0; right: 0;
+      height: 160px;
+      background: linear-gradient(180deg, transparent 0%, #141414 100%);
+      z-index: 2;
+    }
+
+    /* ── Row Sections ──────────────────────────────────────────── */
+    .browse { position: relative; z-index: 3; margin-top: -60px; padding: 0 48px 48px; }
+    .row { margin-bottom: 40px; }
+    .row-header {
+      display: flex; align-items: baseline; gap: 10px;
+      margin-bottom: 14px;
+    }
+    .row-header h2 {
+      font-size: 22px; font-weight: 700; color: #fff;
+    }
+    .row-header .see-all {
+      font-size: 13px; color: #a0a0a0; cursor: pointer;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    .row-header .see-all:hover { color: #fff; }
+
+    .card-row {
+      display: flex; gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .card-row::-webkit-scrollbar { display: none; }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card {
+      flex-shrink: 0;
+      width: 220px;
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .25s ease, box-shadow .25s ease;
+      position: relative;
+    }
+    .card:hover {
+      transform: scale(1.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      z-index: 10;
+    }
+    .card-poster {
+      width: 100%; aspect-ratio: 2/3;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative;
+      text-align: center;
+      padding: 12px;
+    }
+    .card-poster .poster-emoji { font-size: 36px; line-height: 1.2; }
+    .card-poster .poster-title-mini {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85);
+      margin-top: 6px; line-height: 1.2;
+      text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    }
+    .card-top10 {
+      position: absolute; bottom: 4px; left: 4px;
+    }
+    .card-top10 .num {
+      font-size: 64px; font-weight: 900;
+      color: #fff;
+      line-height: .8;
+      -webkit-text-stroke: 2px #333;
+      text-stroke: 2px #333;
+      text-shadow: -2px 0 0 #333, 0 2px 0 #333, 2px 0 0 #333, 0 -2px 0 #333;
+    }
+    .card-top10 .num-wrap { position: relative; }
+    .card-top10 .num-wrap .poster-emoji-sm {
+      position: absolute; bottom: 2px; right: -16px;
+      font-size: 20px;
+    }
+    .card-info {
+      padding: 10px 6px 8px;
+      background: #1a1a1a;
+    }
+    .card-info .title {
+      font-size: 14px; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-info .meta-line {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #888; margin-top: 4px;
+    }
+    .card-info .meta-line .match { color: #46d369; font-weight: 600; }
+    .card-info .meta-line .year  { border: 1px solid #555; padding: 0 4px; border-radius: 2px; font-size: 11px; }
+
+    .card-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: #e50914; color: #fff;
+      font-size: 10px; font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── Top 10 Special Row ────────────────────────────────────── */
+    .card.top10-card { width: 300px; }
+    .card.top10-card .card-poster { flex-direction: row; gap: 0; padding: 0; }
+    .card.top10-card .poster-emoji { font-size: 28px; }
+    .card.top10-card .card-poster .num-block {
+      font-size: 100px; font-weight: 900;
+      color: #0982e5;
+      line-height: .8;
+      min-width: 80px;
+      text-align: center;
+    }
+    .card.top10-card .card-poster .poster-side {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      flex: 1; height: 100%;
+      padding: 8px;
+    }
+
+    /* ── Modal ─────────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #181818;
+      border-radius: 12px;
+      max-width: 620px; width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.7);
+      animation: modalIn .3s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(.92) translateY(20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-poster {
+      width: 100%; aspect-ratio: 16/9;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      font-size: 48px;
+    }
+    .modal-poster .modal-emoji { font-size: 64px; }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: none; background: rgba(0,0,0,.6);
+      color: #fff; font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .modal-close:hover { background: rgba(0,0,0,.9); }
+    .modal-body { padding: 20px 24px 28px; }
+    .modal-body h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .modal-meta {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: #aaa; margin-bottom: 16px;
+    }
+    .modal-meta .match { color: #46d369; font-weight: 700; }
+    .modal-meta .badge { border: 1px solid #555; padding: 0 6px; border-radius: 3px; }
+    .modal-body .desc { font-size: 15px; line-height: 1.7; color: #b0b0b0; margin-bottom: 16px; }
+    .modal-body .cast { font-size: 13px; color: #777; }
+    .modal-body .cast strong { color: #999; }
+    .modal-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+
+    /* ── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .header { padding: 0 20px; gap: 16px; }
+      .nav { display: none; }
+      .hero { padding: 0 20px 80px; }
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 15px; }
+      .hero-poster { width: 160px; height: 230px; right: 5%; }
+      .hero-poster-text .emoji-big { font-size: 36px; }
+      .browse { padding: 0 20px 24px; }
+      .card { width: 160px; }
+      .card.top10-card { width: 220px; }
+      .card.top10-card .card-poster .num-block { font-size: 70px; min-width: 56px; }
+      .modal { margin: 12px; }
+      .row-header h2 { font-size: 18px; }
+    }
+    @media (max-width: 480px) {
+      .hero-poster { display: none; }
+      .hero h1 { font-size: 28px; }
+      .card { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ────────────────────────────────────────────── -->
+  <header class="header" id="header">
+    <div class="logo">Rush<span>Flix</span></div>
+    <ul class="nav">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Series</a></li>
+      <li><a href="#">Movies</a></li>
+      <li><a href="#">New & Popular</a></li>
+      <li><a href="#">My List</a></li>
+    </ul>
+    <div class="header-right">
+      <i>🔍</i>
+      <span class="bell-wrap"><i>🔔</i><span class="bell-badge">3</span></span>
+      <i>👤</i>
+    </div>
+  </header>
+
+  <!-- ─── Hero ──────────────────────────────────────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-poster" id="heroPoster">
+      <div class="hero-poster-glow"></div>
+      <div class="hero-poster-text">
+        <span class="emoji-big">👻</span>
+        <span class="year-badge">2004</span>
+      </div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">RushFlix Original</div>
+      <h1 id="heroTitle">Legacy</h1>
+      <div class="hero-meta">
+        <span class="match" id="heroMatch">98% Match</span>
+        <span id="heroYear">2004</span>
+        <span class="badge">13+</span>
+        <span>2h 14m</span>
+      </div>
+      <p id="heroDesc">Nobody knows how it works, and everyone's afraid to touch it. A terrifying journey into the depths of undocumented code.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary">▶ Play</button>
+        <button class="btn-secondary">ℹ More Info</button>
+      </div>
+    </div>
+    <div class="hero-fade"></div>
+  </section>
+
+  <!-- ─── Browse Rows ───────────────────────────────────────── -->
+  <section class="browse" id="browse"></section>
+
+  <!-- ─── Modal ─────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-poster" id="modalPoster">
+        <span class="modal-emoji">🎬</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <h2 id="modalTitle">Title</h2>
+        <div class="modal-meta">
+          <span class="match" id="modalMatch">—</span>
+          <span id="modalYear">—</span>
+          <span class="badge">13+</span>
+          <span id="modalRuntime">—</span>
+        </div>
+        <p class="desc" id="modalDesc">—</p>
+        <div class="modal-buttons">
+          <button class="btn-primary">▶ Play</button>
+          <button class="btn-secondary">+ My List</button>
+        </div>
+        <p class="cast" id="modalCast"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Data ─────────────────────────────────────────────────
+    const ROWS = [
+      { id: 'popular',      title: 'Popular' },
+      { id: 'top10',        title: "Today's Top 10" },
+      { id: 'continue',     title: 'Continue Watching' },
+      { id: 'newreleases',  title: 'New Releases' },
+      { id: 'backintrend',  title: 'Back in Trend' },
+    ];
+
+    const MOVIES = [
+      {
+        id: 'legacy', title: 'Legacy',
+        year: 2004, match: 98, runtime: '2h 14m',
+        desc: "Nobody knows how it works, and everyone's afraid to touch it. A terrifying journey into the depths of undocumented code.",
+        cast: 'Every Senior Dev • Every Junior Dev • The Intern',
+        gradient: 'radial-gradient(circle at 30% 30%, #1e3a5f, transparent 60%), radial-gradient(circle at 70% 80%, #2a1a3a, transparent 50%), linear-gradient(135deg, #0f0f23, #1a1a3e 50%, #0a1628)',
+        emoji: '👻',
+        top10: false,
+        hero: true,
+      },
+      {
+        id: 'friday-deploy', title: 'Friday Deployment',
+        year: 2025, match: 97, runtime: '1h 48m',
+        desc: 'The clock ticks past 4pm. The PR is merged. What could possibly go wrong? A pulse-pounding thriller about the most dangerous hour of the week.',
+        cast: 'Git • CI Pipeline • The Ops Guy',
+        gradient: 'radial-gradient(circle at 50% 30%, #4a1a1a 0%, transparent 60%), linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 100%)',
+        emoji: '🚀',
+        top10: true,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'product-drop', title: 'Product Drop',
+        year: 2024, match: 95, runtime: '1h 32m',
+        desc: 'The PM said "just a small change." Now the entire sprint is on fire. A comedy of errors in the world of product management.',
+        cast: 'Product Manager • Stakeholder • The QA Who Saw It Coming',
+        gradient: 'radial-gradient(circle at 40% 40%, #3a2a1a 0%, transparent 60%), linear-gradient(135deg, #1a1a0a 0%, #2a1a0a 100%)',
+        emoji: '📦',
+        top10: true,
+        hero: false,
+        row: 'top10',
+      },
+      {
+        id: 'merge-conflict', title: 'Merge Conflict',
+        year: 2023, match: 99, runtime: '1h 56m',
+        desc: 'Two branches enter, one branch leaves. An action-packed saga of diff wars and resolution strategies that nobody agrees on.',
+        cast: 'Main Branch • Feature Branch • The Rebase Guru',
+        gradient: 'radial-gradient(circle at 60% 40%, #2a1a4a 0%, transparent 60%), linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 100%)',
+        emoji: '⚔️',
+        top10: true,
+        hero: false,
+        row: 'top10',
+      },
+      {
+        id: 'vibe-coder', title: 'Vibe Coder',
+        year: 2026, match: 91, runtime: '1h 24m',
+        desc: 'A developer discovers a new IDE plugin that writes code by reading their mood music playlist. Hilarity ensues when the code starts dancing.',
+        cast: 'The Vibe • The Auto-complete • Stack Overflow',
+        gradient: 'radial-gradient(circle at 50% 30%, #1a3a3a 0%, transparent 60%), linear-gradient(135deg, #0a1a1a 0%, #0a2a2a 100%)',
+        emoji: '🎧',
+        top10: true,
+        hero: false,
+        row: 'top10',
+      },
+      {
+        id: 'standup-silence', title: 'Standup Silence',
+        year: 2025, match: 93, runtime: '0h 46m',
+        desc: 'The scrum master asks "what did you do yesterday?" and the room goes quiet. A dramatic short film about the awkwardness of unplanned days.',
+        cast: 'Scrum Master • The Mute Dev • That One Guy Who Talks Too Much',
+        gradient: 'radial-gradient(circle at 40% 30%, #2a2a2a 0%, transparent 60%), linear-gradient(135deg, #111 0%, #222 100%)',
+        emoji: '🤐',
+        top10: false,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'rubber-duck', title: 'Rubber Duck',
+        year: 2022, match: 96, runtime: '1h 12m',
+        desc: 'An emotional drama about a developer and their rubber duck. When the duck goes missing, they must debug their life to find it.',
+        cast: 'The Duck • The Dev • The Bug',
+        gradient: 'radial-gradient(circle at 50% 40%, #3a3a1a 0%, transparent 60%), linear-gradient(135deg, #1a1a0a 0%, #2a2a0a 100%)',
+        emoji: '🦆',
+        top10: false,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'prod-hotfix', title: 'Прод упал',
+        year: 2024, match: 94, runtime: '1h 38m',
+        desc: 'The pager goes off at 3am. The database is down. One dev must race against time to deploy a hotfix without breaking everything else.',
+        cast: 'The Pager • Midnight Coffee • The DB Admin',
+        gradient: 'radial-gradient(circle at 50% 30%, #4a2a0a 0%, transparent 60%), linear-gradient(135deg, #1a0a00 0%, #2d1400 100%)',
+        emoji: '🔥',
+        badge: 'NEW SEASON',
+        top10: false,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'code-review', title: 'Code Review',
+        year: 2023, match: 90, runtime: '2h 05m',
+        desc: 'A single PR sits open for three weeks. The comments pile up. Nobody dares to approve. A suspense thriller about the fear of merge.',
+        cast: 'The Author • The Nitpicker • The LGTM Guy',
+        gradient: 'radial-gradient(circle at 30% 40%, #1a2a4a 0%, transparent 60%), linear-gradient(135deg, #0a0a1a 0%, #0a1a2a 100%)',
+        emoji: '🔍',
+        top10: false,
+        hero: false,
+        row: 'continue',
+      },
+      {
+        id: 'sprint-zero', title: 'Sprint Zero',
+        year: 2024, match: 88, runtime: '0h 52m',
+        desc: 'The team is asked to estimate a project with no requirements. A psychological horror about the true meaning of uncertainty.',
+        cast: 'The Estimator • Point Values • The PM',
+        gradient: 'radial-gradient(circle at 50% 30%, #2a1a1a 0%, transparent 60%), linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%)',
+        emoji: '❓',
+        top10: false,
+        hero: false,
+        row: 'continue',
+      },
+      {
+        id: 'docker-compose', title: 'Docker Compose',
+        year: 2025, match: 92, runtime: '2h 20m',
+        desc: 'It works on my machine—but nowhere else. An epic quest across containerized environments to find the one configuration that unites them all.',
+        cast: 'Localhost • The Container • DevOps',
+        gradient: 'radial-gradient(circle at 40% 30%, #1a2a3a 0%, transparent 60%), linear-gradient(135deg, #0a0a1a 0%, #0a1a2a 100%)',
+        emoji: '🐳',
+        top10: false,
+        hero: false,
+        row: 'continue',
+      },
+      {
+        id: 'estimation-poker', title: 'Estimation Poker',
+        year: 2023, match: 85, runtime: '1h 15m',
+        desc: 'A high-stakes card game where the numbers mean nothing and everyone is bluffing. The hardest part of agile isn\'t the standups.',
+        cast: 'Fibonacci • The Cynic • The Optimist',
+        gradient: 'radial-gradient(circle at 50% 40%, #2a2a1a 0%, transparent 60%), linear-gradient(135deg, #1a1a0a 0%, #0a0a0a 100%)',
+        emoji: '🃏',
+        top10: false,
+        hero: false,
+        row: 'newreleases',
+      },
+      {
+        id: 'refactor-special', title: 'The Refactor',
+        year: 2026, match: 97, runtime: '1h 42m',
+        desc: 'They said "just rename it." Now the entire codebase is a different shape. A mind-bending documentary about the courage to change.',
+        cast: 'The Old Code • The New Pattern • Technical Debt',
+        gradient: 'radial-gradient(circle at 60% 40%, #1a3a2a 0%, transparent 60%), linear-gradient(135deg, #0a1a0a 0%, #0a2a1a 100%)',
+        emoji: '🔧',
+        top10: false,
+        hero: false,
+        row: 'newreleases',
+      },
+      {
+        id: 'deadline-express', title: 'Deadline Express',
+        year: 2026, match: 93, runtime: '1h 28m',
+        desc: 'The release is tomorrow and nothing works. An adrenaline-fueled ride through the last 24 hours before a major ship date.',
+        cast: 'The Clock • Energy Drinks • The Build Server',
+        gradient: 'radial-gradient(circle at 50% 30%, #3a1a1a 0%, transparent 60%), linear-gradient(135deg, #1a0000 0%, #2d0000 100%)',
+        emoji: '⏰',
+        top10: false,
+        hero: false,
+        row: 'newreleases',
+      },
+      {
+        id: 'zero-docs', title: 'Zero Docs',
+        year: 2025, match: 100, runtime: '1h 34m',
+        desc: 'No README. No comments. No mercy. A found-footage horror film set in a repository where the original author has left the company.',
+        cast: 'The Author (missing) • The Successor • Stack Overflow',
+        gradient: 'radial-gradient(circle at 30% 30%, #1a1a2a 0%, transparent 60%), linear-gradient(135deg, #050510 0%, #0a0a1a 100%)',
+        emoji: '📝',
+        top10: false,
+        hero: false,
+        row: 'newreleases',
+      },
+      {
+        id: 'all-hands', title: 'All-Hands Meeting',
+        year: 2023, match: 87, runtime: '0h 58m',
+        desc: 'A single calendar invite that swallows the entire afternoon. A slow-burn drama about productivity lost and the battle for focus time.',
+        cast: 'The Calendar • The CEO\'s Slide Deck • Deep Work (RIP)',
+        gradient: 'radial-gradient(circle at 50% 30%, #2a2a3a 0%, transparent 60%), linear-gradient(135deg, #111118 0%, #1a1a22 100%)',
+        emoji: '📅',
+        top10: false,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'branch-hell', title: 'Branch Hell',
+        year: 2024, match: 89, runtime: '1h 22m',
+        desc: '47 branches, 3 remotes, and nobody remembers which one has the fix. A maze-like horror set in the tangled tree of git.',
+        cast: 'HEAD • ORIGIN/MAIN • The Detached HEAD',
+        gradient: 'radial-gradient(circle at 50% 40%, #2a1a2a 0%, transparent 60%), linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)',
+        emoji: '🌿',
+        top10: false,
+        hero: false,
+        row: 'popular',
+      },
+      {
+        id: 'daily-standup', title: 'Daily Standup',
+        year: 2025, match: 94, runtime: '0h 15m',
+        desc: 'Three questions. Fifteen minutes. Somehow it takes all morning. A gripping documentary about the most recurring meeting in tech.',
+        cast: 'Yesterday • Today • The Impediment',
+        gradient: 'radial-gradient(circle at 40% 30%, #2a3a2a 0%, transparent 60%), linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%)',
+        emoji: '🌅',
+        top10: false,
+        hero: false,
+        row: 'backintrend',
+      },
+      {
+        id: 'one-on-one', title: '1:1 — The Reunion',
+        year: 2024, match: 91, runtime: '0h 30m',
+        desc: 'Two chairs. One agenda. An intimate drama about the conversation that everyone schedules and nobody prepares for.',
+        cast: 'The Manager • The Report • The Shared Doc',
+        gradient: 'radial-gradient(circle at 50% 40%, #2a2a3a 0%, transparent 60%), linear-gradient(135deg, #111122 0%, #1a1a33 100%)',
+        emoji: '🧑‍💼',
+        top10: false,
+        hero: false,
+        row: 'backintrend',
+      },
+      {
+        id: 'sprint-retro', title: 'Sprint Retrospective',
+        year: 2026, match: 88, runtime: '1h 05m',
+        desc: 'What went well? What went wrong? What will we do differently? A philosophical trilogy about the endless cycle of self-improvement.',
+        cast: 'Start • Stop • Continue',
+        gradient: 'radial-gradient(circle at 30% 40%, #1a2a4a 0%, transparent 60%), linear-gradient(135deg, #0a0a1a 0%, #0a1a2a 100%)',
+        emoji: '🔄',
+        top10: false,
+        hero: false,
+        row: 'backintrend',
+      },
+    ];
+
+    // ─── Build Cards ───────────────────────────────────────────
+    function createCard(movie, isTop10, rank) {
+      const card = document.createElement('div');
+      card.className = `card${isTop10 ? ' top10-card' : ''}`;
+      card.dataset.id = movie.id;
+
+      const poster = document.createElement('div');
+      poster.className = 'card-poster';
+      poster.style.background = movie.gradient;
+
+      if (isTop10) {
+        const num = document.createElement('div');
+        num.className = 'num-block';
+        num.textContent = rank;
+        poster.appendChild(num);
+
+        const side = document.createElement('div');
+        side.className = 'poster-side';
+        side.innerHTML = `<span class="poster-emoji">${movie.emoji}</span>
+          <span class="poster-title-mini">${movie.title}</span>`;
+        poster.appendChild(side);
+      } else {
+        poster.innerHTML = `<span class="poster-emoji">${movie.emoji}</span>
+          <span class="poster-title-mini">${movie.title}</span>`;
+      }
+
+      card.appendChild(poster);
+
+      const info = document.createElement('div');
+      info.className = 'card-info';
+      info.innerHTML = `
+        <div class="title">${movie.title}</div>
+        <div class="meta-line">
+          <span class="match">${movie.match}% Match</span>
+          <span class="year">${movie.year}</span>
+        </div>
+      `;
+      card.appendChild(info);
+
+      // Optional badge (e.g. "NEW SEASON")
+      if (movie.badge) {
+        const badge = document.createElement('span');
+        badge.className = 'card-badge';
+        badge.textContent = movie.badge;
+        poster.appendChild(badge);
+      }
+
+      card.addEventListener('click', () => openModal(movie));
+      return card;
+    }
+
+    // ─── Render Rows ────────────────────────────────────────────
+    const browse = document.getElementById('browse');
+
+    ROWS.forEach(rowDef => {
+      const section = document.createElement('section');
+      section.className = 'row';
+      section.id = `row-${rowDef.id}`;
+
+      const header = document.createElement('div');
+      header.className = 'row-header';
+      header.innerHTML = `<h2>${rowDef.title}</h2><span class="see-all">See All</span>`;
+      section.appendChild(header);
+
+      const rowEl = document.createElement('div');
+      rowEl.className = 'card-row';
+
+      let movies;
+      if (rowDef.id === 'top10') {
+        // Top 10 gets exactly the movies flagged as top10, ordered
+        movies = MOVIES.filter(m => m.top10).slice(0, 10);
+        movies.forEach((m, i) => {
+          rowEl.appendChild(createCard(m, true, i + 1));
+        });
+      } else if (rowDef.id === 'popular') {
+        movies = MOVIES.filter(m => m.row === 'popular' || (!m.row && !m.top10 && !m.hero));
+        movies.forEach(m => rowEl.appendChild(createCard(m, false)));
+      } else {
+        movies = MOVIES.filter(m => m.row === rowDef.id);
+        movies.forEach(m => rowEl.appendChild(createCard(m, false)));
+      }
+
+      section.appendChild(rowEl);
+      browse.appendChild(section);
+    });
+
+    // Ensure Popular row has movies (any not assigned to a specific row)
+    const popularRow = document.getElementById('row-popular');
+    if (popularRow) {
+      const popularMovies = MOVIES.filter(m =>
+        m.row === 'popular' ||
+        (!m.row && !m.top10 && !m.hero)
+      );
+      if (popularMovies.length === 0) {
+        // refill with unassigned
+        const unassigned = MOVIES.filter(m => !m.row && !m.top10 && !m.hero);
+        unassigned.forEach(m => {
+          popularRow.querySelector('.card-row').appendChild(createCard(m, false));
+        });
+      }
+    }
+
+    // Move hero movie to hero
+    const heroMovie = MOVIES.find(m => m.hero);
+    if (heroMovie) {
+      document.getElementById('heroTitle').textContent = heroMovie.title;
+      document.getElementById('heroMatch').textContent = `${heroMovie.match}% Match`;
+      document.getElementById('heroYear').textContent = heroMovie.year;
+      document.getElementById('heroDesc').textContent = heroMovie.desc;
+      document.getElementById('heroPoster').style.background = heroMovie.gradient;
+      document.getElementById('heroPoster').querySelector('.emoji-big').textContent = heroMovie.emoji;
+      document.getElementById('heroPoster').querySelector('.year-badge').textContent = heroMovie.year;
+    }
+
+    // ─── Modal ─────────────────────────────────────────────────
+    const overlay = document.getElementById('modalOverlay');
+    const closeBtn = document.getElementById('modalClose');
+
+    function openModal(movie) {
+      document.getElementById('modalTitle').textContent = movie.title;
+      document.getElementById('modalMatch').textContent = `${movie.match}% Match`;
+      document.getElementById('modalYear').textContent = movie.year;
+      document.getElementById('modalRuntime').textContent = movie.runtime;
+      document.getElementById('modalDesc').textContent = movie.desc;
+      document.getElementById('modalCast').innerHTML = `<strong>Cast:</strong> ${movie.cast}`;
+      const poster = document.getElementById('modalPoster');
+      poster.style.background = movie.gradient;
+      poster.querySelector('.modal-emoji').textContent = movie.emoji;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ─── Header scroll shadow ────────────────────────────────────
+    window.addEventListener('scroll', () => {
+      document.getElementById('header')
+        .classList.toggle('scrolled', window.scrollY > 40);
+    });
+  </script>
+</body>
+</html>

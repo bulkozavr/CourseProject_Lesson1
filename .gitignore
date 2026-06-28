@@ -1,0 +1,5 @@
+# Ignore everything except index.html and CLAUDE.md
+/*
+!/index.html
+!/CLAUDE.md
+!.gitignore
